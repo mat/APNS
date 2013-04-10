@@ -1,7 +1,7 @@
 APNS
 ====
 
-a gem for the Apple Push Notification Service.
+A gem for the Apple Push Notification Service.
 
 Install
 -------
@@ -15,21 +15,21 @@ Convert your certificate
 
 In Keychain access export your certificate as a p12. Then run the following command to convert it to a .pem
 
-```
-    openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
+```bash
+openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
 ```
 
 After you have your .pem file. Set what host, port, certificate file location on the APNS class:
 
-```
-    APNS.host = 'gateway.push.apple.com' 
-    # gateway.sandbox.push.apple.com is default
+```ruby
+APNS.host = 'gateway.push.apple.com' 
+# gateway.sandbox.push.apple.com is default
 
-    APNS.pem  = '/path/to/pem/file'
-    # this is the file you just created
+APNS.pem  = '/path/to/pem/file'
+# this is the file you just created
     
-    APNS.port = 2195 
-    # this is also the default. Shouldn't ever have to set this, but just in case Apple goes crazy, you can.
+APNS.port = 2195 
+# this is also the default. Shouldn't ever have to set this, but just in case Apple goes crazy, you can.
 ```
 
 Example (Single notification)
@@ -38,26 +38,26 @@ Example (Single notification)
 Then to send a push notification you can either just send a string as the alert or give it a hash for the alert, badge and sound.
 
 ```ruby
-    device_token = '123abc456def'
+device_token = '123abc456def'
 
-    APNS.send_notification(device_token, 'Hello iPhone!' )
+APNS.send_notification(device_token, 'Hello iPhone!' )
 
-    APNS.send_notification(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default')
+APNS.send_notification(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default')
 ```  
 
-h2. Example (Multiple notifications):
+Example (Multiple notifications)
+--------------------------------
 
 You can also send multiple notifications using the same connection to Apple:
 
-
 ```ruby
-    device_token = '123abc456def'
+device_token = '123abc456def'
 
-    n1 = APNS::Notification.new(device_token, 'Hello iPhone!' )
+n1 = APNS::Notification.new(device_token, 'Hello iPhone!' )
 
-    n2 = APNS::Notification.new(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default')
+n2 = APNS::Notification.new(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default')
     
-    APNS.send_notifications([n1, n2])
+APNS.send_notifications([n1, n2])
 ```
 
 
@@ -67,14 +67,21 @@ Send other info along with aps
 You can send other application specific information as well.
 
 ```ruby
-    APNS.send_notification(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default',
-                                         :other => {:sent => 'with apns gem'})
+APNS.send_notification(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default',
+                                     :other => {:sent => 'with apns gem'})
 ```
 
 This will add the other hash to the same level as the aps hash:
 
 ```json
-    {"aps":{"alert":"Hello iPhone!","badge":1,"sound":"default"},"sent":"with apns gem"}
+{
+  "aps": {
+    "alert": "Hello iPhone!",
+    "badge": 1,
+    "sound": "default"
+  },
+  "sent": "with apns gem"
+}
 ```
 
 
@@ -87,43 +94,43 @@ ApplicationAppDelegate.m
 ------------------------
 
 ```objc
-    - (void)applicationDidFinishLaunching:(UIApplication *)application 
-    {    
-        // Register with apple that this app will use push notification
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | 
-          UIRemoteNotificationTypeSound | UIRemoteNotificationTypeBadge)];
+- (void)applicationDidFinishLaunching:(UIApplication *)application 
+{    
+    // Register with apple that this app will use push notification
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | 
+      UIRemoteNotificationTypeSound | UIRemoteNotificationTypeBadge)];
 
-        // Your app startup logic...
-        return YES;
-    }
+    // Your app startup logic...
+    return YES;
+}
 
-    - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken 
-    {
-        // Convert the binary data token into an NSString (see below for the implementation of this function)
-        NSString *deviceTokenAsString = stringFromDeviceTokenData(deviceToken);
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken 
+{
+    // Convert the binary data token into an NSString (see below for the implementation of this function)
+    NSString *deviceTokenAsString = stringFromDeviceTokenData(deviceToken);
 
-        // Show the device token obtained from apple to the log
-        NSLog(@"deviceToken: %@", deviceTokenAsString);
-    }
+    // Show the device token obtained from apple to the log
+    NSLog(@"deviceToken: %@", deviceTokenAsString);
+}
 ```
 
 stringFromDeviceTokenData function
 ----------------------------------
 
-This snippet comes from "this stackoverflow post's anwser":http://stackoverflow.com/a/1990880/855846.
+This snippet comes from this stackoverflow post's anwser:http://stackoverflow.com/a/1990880/855846.
 ```objc
 
-    NSString* stringFromDeviceTokenData(NSData *deviceToken)
-    {
-      const char *data = [deviceToken bytes];
-      NSMutableString* token = [NSMutableString string];
+NSString* stringFromDeviceTokenData(NSData *deviceToken)
+{
+  const char *data = [deviceToken bytes];
+  NSMutableString* token = [NSMutableString string];
       
-      for (int i = 0; i < [deviceToken length]; i++) {
-        [token appendFormat:@"%02.2hhX", data[i]];
-      }
+  for (int i = 0; i < [deviceToken length]; i++) {
+    [token appendFormat:@"%02.2hhX", data[i]];
+  }
       
-      return [[token copy] autorelease];
-    }
+  return [[token copy] autorelease];
+}
 ```
 
-For more information on Apple Push Notifications you can see Apple Developer Documentation "here":http://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/IPhoneOSClientImp/IPhoneOSClientImp.html#//apple_ref/doc/uid/TP40008194-CH103-SW2.
+For more information on Apple Push Notifications you can see Apple Developer Documentation at http://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/IPhoneOSClientImp/IPhoneOSClientImp.html#//apple_ref/doc/uid/TP40008194-CH103-SW2.
