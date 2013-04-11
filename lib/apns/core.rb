@@ -22,6 +22,8 @@ module APNS
     sock, ssl = self.open_connection
 
     notifications.each do |n|
+      payload = n.packaged_message
+      puts "Sending APN to device token %s with payload (%s bytes): %s" % [n.device_token, payload.bytesize, payload]
       ssl.write(n.packaged_notification)
     end
 
